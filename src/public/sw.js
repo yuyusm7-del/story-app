@@ -64,11 +64,12 @@ self.addEventListener("fetch", (event) => {
     caches
       .match(event.request)
       .then((response) => {
+        // Jika ada di cache, langsung kembalikan respons
         if (response) {
           return response;
         }
 
-        // Jika file tidak ada di cache, coba ambil dari network
+        // Jika tidak ada di cache, coba ambil dari network
         return fetch(event.request).then((networkResponse) => {
           // Jika berhasil, tambahkan ke cache untuk penggunaan berikutnya
           return caches.open(CACHE_NAME).then((cache) => {
@@ -78,13 +79,12 @@ self.addEventListener("fetch", (event) => {
         });
       })
       .catch((error) => {
-        // Jika semua gagal (offline), berikan respons fallback
         console.error(
-          "Fetch failed; returning offline page or empty shell.",
+          "Fetch failed; returning from cache if available.",
           error
         );
-        // Anda bisa mengembalikan halaman offline yang telah di-cache jika ada
-        // return caches.match('/offline.html');
+        // Kembali ke cache saat network gagal (strategi cache-first)
+        return caches.match(event.request);
       })
   );
 });
